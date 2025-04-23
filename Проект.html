@@ -9,18 +9,20 @@
     <div id="logo">
         <img src="Logo.png" alt="" id="logoimg">
     </div>
-    <form action="" id="form">
-        <h2>Сканер дефектов рельсы</h2>
-        <div>
-            <label for="length">Длина рельсы(см):</label>
-            <input type="number" id="length" placeholder="Например: 100">
-        </div>
-        <div>
-            <label for="defects">Координаты дефектов:</label>
-            <input type="number" id="defects" placeholder="Например: 5, 15, 20">
-        </div>
-        <button>Сканировать</button>
-    </form>
+    <div id="divform">
+        <form action="" id="form">
+            <h2>Сканер дефектов рельсы</h2>
+            <div>
+                <label for="length">Длина рельсы(см):</label>
+                <input type="number" id="length" placeholder="Например: 100">
+            </div>
+            <div>
+                <label for="defects">Координаты дефектов:</label>
+                <input type="number" id="defects" placeholder="Например: 5, 15, 20">
+            </div>
+            <button onclick="scan()">Сканировать</button>
+        </form>
+    </div>
 
 </body>
 <script src="Проект.js"></script>
