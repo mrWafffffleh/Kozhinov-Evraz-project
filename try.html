@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Рельсовый дефектоскоп (оптимизированный)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, button {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+    }
+    .result {
+      margin-top: 20px;
+    }
+    .step {
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+    .lights {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .light {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    .green { background-color: #28a745; color: white; }
+    .yellow { background-color: #ffc107; }
+    .red { background-color: #dc3545; color: white; }
+    .defect-info {
+      margin-top: 10px;
+      padding: 5px;
+      background-color: #ffeeba;
+      border-radius: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Рельсовый дефектоскоп</h1>
+  <h3>Оптимизированный алгоритм поиска дефектов</h3>
+
+  <div class="input-group">
+    <label for="railLength">Длина рельса (см):</label>
+    <input type="number" id="railLength" min="1" placeholder="Введите длину рельса">
+  </div>
+
+  <div class="input-group">
+    <label for="defects">Координаты дефектов (через запятую, см):</label>
+    <input type="text" id="defects" placeholder="Например: 15, 32, 45, 78">
+  </div>
+
+  <button id="calculate">Найти дефекты</button>
+  <div id="error" class="error"></div>
+
+  <div id="result" class="result" style="display: none;">
+    <h3>Результаты проверки</h3>
+    <div id="stepsCount"></div>
+    <div id="stepsList"></div>
+    <div id="defectsFound"></div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('calculate').addEventListener('click', function() {
+    const railLength = parseInt(document.getElementById('railLength').value);
+    const defectsInput = document.getElementById('defects').value;
+    const errorElement = document.getElementById('error');
+    const resultElement = document.getElementById('result');
+
+    errorElement.textContent = '';
+    resultElement.style.display = 'none';
+
+    try {
+      // Парсинг и валидация входных данных
+      if (isNaN(railLength) || railLength <= 0) throw new Error('Укажите корректную длину рельса');
+
+      const defects = defectsInput.split(',')
+              .map(d => parseInt(d.trim()))
+              .filter(d => !isNaN(d) && d >= 0 && d <= railLength);
+
+      if (defects.length === 0) throw new Error('Укажите хотя бы один дефект');
+
+      // Удаляем дубликаты и сортируем
+      const uniqueDefects = [...new Set(defects)].sort((a, b) => a - b);
+
+      // Алгоритм поиска с учетом ограничений радара
+      const { checkPoints, foundDefects } = findDefects(uniqueDefects, railLength);
+
+      // Отображение результатов
+      displayResults(checkPoints, foundDefects, railLength);
+      resultElement.style.display = 'block';
+
+    } catch (error) {
+      errorElement.textContent = error.message;
+    }
+  });
+
+  function findDefects(defects, railLength) {
+    const checkPoints = [];
+    const foundDefects = new Set();
+    const scanRange = 10; // 10 см в каждую сторону
+
+    let currentPos = 0;
+
+    while (currentPos <= railLength) {
+      // Проверяем, есть ли непроверенные дефекты впереди
+      const remainingDefects = defects.filter(d => !foundDefects.has(d) && d >= currentPos);
+      if (remainingDefects.length === 0) break;
+
+      // Выбираем следующую точку проверки
+      let nextCheckPoint;
+
+      // Если есть дефекты в пределах текущей позиции +20см, проверяем их
+      const nearbyDefects = remainingDefects.filter(d => d <= currentPos + 20);
+
+      if (nearbyDefects.length > 0) {
+        // Проверяем ближайший дефект
+        nextCheckPoint = nearbyDefects[0];
+      } else {
+        // Иначе двигаемся вперед с шагом 20см
+        nextCheckPoint = currentPos + 20;
+      }
+
+      // Не выходим за пределы рельса
+      nextCheckPoint = Math.min(nextCheckPoint, railLength);
+
+      // Проверяем, есть ли дефект в этой точке
+      const hasDefect = defects.includes(nextCheckPoint);
+      if (hasDefect) {
+        foundDefects.add(nextCheckPoint);
+      }
+
+      // Проверяем зоны слева и справа
+      const leftZoneStart = Math.max(0, nextCheckPoint - scanRange);
+      const rightZoneEnd = Math.min(railLength, nextCheckPoint + scanRange);
+
+      // Проверяем наличие дефектов в зонах (без определения точных координат)
+      const hasLeftDefect = defects.some(d =>
+              !foundDefects.has(d) && d >= leftZoneStart && d < nextCheckPoint);
+
+      const hasRightDefect = defects.some(d =>
+              !foundDefects.has(d) && d > nextCheckPoint && d <= rightZoneEnd);
+
+      // Если в зонах есть дефекты, добавляем их в список для проверки
+      if (hasLeftDefect || hasRightDefect) {
+        // Для левой зоны проверяем с шагом 5см (чтобы определить точную координату)
+        if (hasLeftDefect) {
+          for (let pos = nextCheckPoint - 5; pos >= leftZoneStart; pos -= 5) {
+            if (defects.includes(pos) && !foundDefects.has(pos)) {
+              foundDefects.add(pos);
+              break;
+            }
+          }
+        }
+
+        // Для правой зоны проверяем с шагом 5см
+        if (hasRightDefect) {
+          for (let pos = nextCheckPoint + 5; pos <= rightZoneEnd; pos += 5) {
+            if (defects.includes(pos) && !foundDefects.has(pos)) {
+              foundDefects.add(pos);
+              break;
+            }
+          }
+        }
+      }
+
+      checkPoints.push({
+        position: nextCheckPoint,
+        hasDefect,
+        leftZone: hasLeftDefect ? 'defect' : 'clear',
+        rightZone: hasRightDefect ? 'defect' : 'clear'
+      });
+
+      // Сдвигаем текущую позицию
+      currentPos = nextCheckPoint + 1;
+    }
+
+    return { checkPoints, foundDefects: [...foundDefects].sort((a, b) => a - b) };
+  }
+
+  function displayResults(checkPoints, foundDefects, railLength) {
+    const stepsCountElement = document.getElementById('stepsCount');
+    const stepsListElement = document.getElementById('stepsList');
+    const defectsFoundElement = document.getElementById('defectsFound');
+
+    stepsCountElement.innerHTML = `<p>Всего шагов проверки: <strong>${checkPoints.length}</strong></p>`;
+
+    // Отображаем все шаги проверки
+    stepsListElement.innerHTML = '<h4>Процесс проверки:</h4>';
+    checkPoints.forEach((step, index) => {
+      const stepElement = document.createElement('div');
+      stepElement.className = 'step';
+
+      // Определяем цвет лампочек
+      const leftLight = step.leftZone === 'defect' ? 'red' : 'green';
+      const rightLight = step.rightZone === 'defect' ? 'red' : 'green';
+
+      stepElement.innerHTML = `
+                    <p><strong>Шаг ${index + 1}:</strong> Проверка в точке ${step.position} см</p>
+                    <div class="lights">
+                        <div class="light ${leftLight}" title="Левая зона (${Math.max(0, step.position-10)}-${step.position} см)">Л</div>
+                        ${step.hasDefect ? '<div class="defect-info">⚠ Найден дефект в точке проверки (звуковой сигнал)</div>' : ''}
+                        <div class="light ${rightLight}" title="Правая зона (${step.position}-${Math.min(railLength, step.position+10)} см)">П</div>
+                    </div>
+                    <div>
+                        ${step.leftZone === 'defect' ? 'Дефект в левой зоне' : 'Левая зона чистая'} |
+                        ${step.rightZone === 'defect' ? 'Дефект в правой зоне' : 'Правая зона чистая'}
+                    </div>
+                `;
+
+      stepsListElement.appendChild(stepElement);
+    });
+
+    // Отображаем найденные дефекты
+    defectsFoundElement.innerHTML = `
+                <h4>Найденные дефекты:</h4>
+                <table>
+                    <tr>
+                        <th>Координата (см)</th>
+                        <th>Метод обнаружения</th>
+                    </tr>
+                    ${foundDefects.map(d => `
+                        <tr>
+                            <td>${d}</td>
+                            <td>${checkPoints.some(p => p.position === d) ? 'Прямое обнаружение' : 'Поиск в зоне'}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+                <p>Всего найдено дефектов: <strong>${foundDefects.length}</strong></p>
+            `;
+  }
+</script>
+</body>
+</html>
