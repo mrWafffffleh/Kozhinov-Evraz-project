@@ -32,3 +32,6 @@ button {
     border: none;
     cursor: pointer;
 }
+.result {
+    margin-top: 20px;
+}

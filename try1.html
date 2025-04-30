@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Defect Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, button {
+            padding: 8px;
+            font-size: 16px;
+        }
+        button {
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .light {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+        .red {
+            background-color: red;
+        }
+        .yellow {
+            background-color: yellow;
+        }
+        .green {
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+<h1>Robot Defect Finder</h1>
+
+<div class="input-group">
+    <label for="length">Длина проверяемой области:</label>
+    <input type="number" id="length" min="0" value="100">
+</div>
+
+<div class="input-group">
+    <label for="coordinates">Множество координат с дефектами (через запятую):</label>
+    <input type="text" id="coordinates" value="5,12,18,25,35,48,55,63,78,85,92">
+</div>
+
+<button id="run">Запустить проверку</button>
+
+<div id="output"></div>
+
+<script>
+    document.getElementById('run').addEventListener('click', function() {
+        const length = parseInt(document.getElementById('length').value);
+        const coordsInput = document.getElementById('coordinates').value;
+        const defectCoords = coordsInput.split(',').map(Number).filter(n => !isNaN(n));
+
+        const output = document.getElementById('output');
+        output.innerHTML = '';
+
+        let totalSteps = 0;
+
+        // Первый проход: проверка с шагом 20
+        let currentPos = 0;
+        let suspiciousZones = [];
+
+        output.innerHTML += '=== Первый проход (шаг 20) ===\n';
+
+        while (currentPos <= length) {
+            totalSteps++;
+
+            // Проверяем текущую позицию и ±10 вокруг
+            const defectsInRange = defectCoords.filter(coord =>
+                coord >= Math.max(0, currentPos - 10) && coord <= currentPos + 10
+            );
+
+            // Сортируем дефекты по расстоянию от текущей позиции
+            const sortedDefects = defectsInRange.map(coord => Math.abs(coord - currentPos)).sort((a, b) => a - b);
+
+            // Определяем цвет индикатора
+            let colorClass = 'green';
+            let colorName = 'зелёный';
+
+            if (sortedDefects.length > 0) {
+                const closestDefect = sortedDefects[0];
+
+                if (closestDefect <= 5) {
+                    colorClass = 'red';
+                    colorName = 'красный';
+                } else if (closestDefect <= 10) {
+                    colorClass = 'yellow';
+                    colorName = 'жёлтый';
+                }
+
+                // Добавляем зону в подозрительные для второго прохода
+                const zoneStart = Math.max(0, currentPos - 10);
+                const zoneEnd = currentPos + 10;
+
+                suspiciousZones.push({
+                    start: zoneStart,
+                    end: zoneEnd,
+                    defects: defectsInRange
+                });
+            }
+
+            // Выводим информацию о текущей позиции
+            const statusLine = `Позиция ${currentPos}: ${sortedDefects.length} дефектов в радиусе 10 точек. ` +
+                `Ближайший дефект на расстоянии ${sortedDefects.length > 0 ? sortedDefects[0] : 'N/A'}. ` +
+                `Индикатор: <span class="light ${colorClass}"></span> (${colorName}).`;
+
+            const p = document.createElement('p');
+            p.innerHTML = statusLine;
+            output.appendChild(p);
+
+            // Перемещаемся на 20 точек
+            currentPos += 20;
+        }
+
+        // Второй проход: детальная проверка подозрительных зон
+        output.innerHTML += '\n=== Второй проход (детальная проверка) ===\n';
+
+        const foundDefects = [];
+
+        // Объединяем пересекающиеся зоны
+        const mergedZones = [];
+        suspiciousZones.sort((a, b) => a.start - b.start);
+
+        if (suspiciousZones.length > 0) {
+            let currentZone = {...suspiciousZones[0]};
+
+            for (let i = 1; i < suspiciousZones.length; i++) {
+                if (suspiciousZones[i].start <= currentZone.end) {
+                    // Зоны пересекаются - объединяем
+                    currentZone.end = Math.max(currentZone.end, suspiciousZones[i].end);
+                    currentZone.defects = [...new Set([...currentZone.defects, ...suspiciousZones[i].defects])];
+                } else {
+                    mergedZones.push(currentZone);
+                    currentZone = {...suspiciousZones[i]};
+                }
+            }
+            mergedZones.push(currentZone);
+        }
+
+        // Проверяем каждую зону
+        mergedZones.forEach(zone => {
+            output.innerHTML += `\nПроверка зоны [${zone.start}, ${zone.end}]:\n`;
+
+            // Проверяем каждую точку в зоне
+            for (let pos = zone.start; pos <= zone.end; pos++) {
+                totalSteps++;
+                if (defectCoords.includes(pos)) {
+                    foundDefects.push(pos);
+                    output.innerHTML += `- Найден дефект на позиции ${pos} (шаг ${totalSteps})\n`;
+                }
+            }
+        });
+
+        // Выводим итоговый результат
+        output.innerHTML += '\n=== Итоговый результат ===\n';
+
+        if (foundDefects.length > 0) {
+            output.innerHTML += `Найдены дефекты на следующих координатах: ${foundDefects.sort((a, b) => a - b).join(', ')}\n`;
+        } else {
+            output.innerHTML += 'Дефекты не обнаружены.\n';
+        }
+
+        output.innerHTML += `Общее количество шагов: ${totalSteps}\n`;
+    });
+</script>
+</body>
+</html>
