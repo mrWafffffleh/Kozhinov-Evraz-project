@@ -11,14 +11,37 @@ function scanner(){
         alert("Введите координаты дефектов")
         return;
     }
-    def = defects.value.split(",")
-    def.sort()
+    def = defects.value.split(",").map(Number).filter(n => !isNaN(n))
+    console.log(def)
+
     let checkpoints = []
     let foundDefects = new Set()
     let LaserCord = 0
+    let Steps = 0
     while(LaserCord <= lengthRail.value) {
+        break
         if (def.includes(LaserCord)) {
             foundDefects.add(LaserCord)
+            Steps++
+        }
+        let defInRange = def.filter(coord => coord >= Math.max(0, LaserCord - 10) && coord <= LaserCord + 10)
+        let sortDef = defInRange.map(coord => Math.abs(coord - LaserCord)).sort((a, b) => a - b)
+        let color = {
+            class: "green",
+            name: "Зеленый"
+        }
+        if(sortDef.length > 0){
+            let closeDef = sortDef[0]
+            if(closeDef <= 5){
+                color.name = "Красный"
+                color.class = "red"
+                let zoneStart = Math.max(0, LaserCord - 10)
+            }
+            else if(closeDef <= 10 && closeDef > 5){
+                color.class = "yellow"
+                color.name = "Желтый"
+            }
+
         }
 
     }

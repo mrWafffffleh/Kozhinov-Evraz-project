@@ -35,3 +35,33 @@ button {
 .result {
     margin-top: 20px;
 }
+.rail{
+    width: 800px;
+    height: 10px;
+    margin-top: 100px;
+    background-color: #939393;
+    display: grid;
+    grid-template-columns: repeat(40, 20px);
+}
+#def1 {
+    grid-column-start: 2;
+    grid-column-end: 3;
+    background-color: #272626;
+}
+#def2 {
+    background-color: #272626;
+    grid-column-start: 10;
+    grid-column-end: 11;
+}
+#def3 {
+    background-color: #272626;
+    grid-column-start: 38;
+    grid-column-end: 39;
+}
+#scanner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid red;
+    position: fixed;
+
+}
