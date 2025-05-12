@@ -4,6 +4,9 @@ body {
     padding: 20px;
     background-color: #f5f5f5;
 }
+#logo {
+    margin: 15px;
+}
 #logoimg {
     width: 150px;
 }
@@ -11,7 +14,8 @@ body {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 2px solid #f68b1e ;
+    box-shadow: 0 2px 4px rgba(246, 139, 30, 0.28);
 }
 .inputs{
     margin-bottom: 15px;
@@ -25,43 +29,47 @@ input, button {
     padding: 8px;
     border-radius: 4px;
     border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 button {
-    background-color: #4CAF50;
+    background-color: #f04d23;
     color: white;
     border: none;
     cursor: pointer;
+    box-shadow: 0 2px 4px rgba(240, 77, 35, 0.33);
 }
 .result {
     margin-top: 20px;
 }
-.rail{
+.rail-class{
+    position: relative;
     width: 800px;
-    height: 10px;
-    margin-top: 100px;
-    background-color: #939393;
-    display: grid;
-    grid-template-columns: repeat(40, 20px);
-}
-#def1 {
-    grid-column-start: 2;
-    grid-column-end: 3;
-    background-color: #272626;
-}
-#def2 {
-    background-color: #272626;
-    grid-column-start: 10;
-    grid-column-end: 11;
-}
-#def3 {
-    background-color: #272626;
-    grid-column-start: 38;
-    grid-column-end: 39;
-}
-#scanner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid red;
-    position: fixed;
+    height: 80px;
+    background: #d6d6d6;
+    margin-top: 70px;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 
+}
+.defect {
+    background-color: #272626;
+}
+.defect {
+    position: absolute;
+    width: 1px;
+    height: 80px;
+    background: #ff4444;
+    transform: translate(-50%, -50%);
+    top: 50%;
+}
+.invise {
+    display: none;
+}
+.scanner-class {
+    position: absolute;
+    width: 400px;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.47);
+    transition: left 0.5s ease;
 }

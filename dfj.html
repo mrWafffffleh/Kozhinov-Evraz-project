@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rail Defect Scanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, button {
+      padding: 8px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    #output {
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
+    .light {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-left: 10px;
+    }
+    .rail-container {
+      position: relative;
+      width: 100%;
+      height: 80px;
+      background: #f0f0f0;
+      margin: 20px 0;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .defect {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #ff4444;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      top: 50%;
+    }
+    .scanner {
+      position: absolute;
+      width: 4px;
+      height: 100%;
+      background: #000;
+      transition: left 0.5s ease;
+    }
+    .scan-zone {
+      position: absolute;
+      background: rgba(0, 255, 0, 0.2);
+      height: 100%;
+      transition: left 0.5s ease, width 0.5s ease;
+    }
+    .status-indicator {
+      position: absolute;
+      bottom: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  </style>
+</head>
+<body>
+<h1>Rail Defect Scanner</h1>
+
+<div class="input-group">
+  <label for="length">Длина рельса:</label>
+  <input type="number" id="length" min="0" value="100">
+</div>
+
+<div class="input-group">
+  <label for="coordinates">Координаты дефектов (через запятую):</label>
+  <input type="text" id="coordinates" value="5,12,18,25,35,48,55,63,78,85,92">
+</div>
+
+<button id="run">Запустить сканирование</button>
+
+<div class="rail-container" id="rail">
+  <div class="scanner" id="scanner"></div>
+  <div class="scan-zone" id="scanZone"></div>
+</div>
+
+<div id="output"></div>
+
+<script>
+  function renderDefects(coords, maxLength) {
+    const rail = document.getElementById('rail');
+    rail.innerHTML = '';
+    coords.forEach(coord => {
+      if (coord > maxLength) return;
+      const defect = document.createElement('div');
+      defect.className = 'defect';
+      defect.style.left = `${(coord / maxLength) * 100}%`;
+      rail.appendChild(defect);
+    });
+  }
+
+  function updateScanner(position, maxLength, scanRange = 10) {
+    const scanner = document.getElementById('scanner');
+    const scanZone = document.getElementById('scanZone');
+
+    const start = Math.max(0, position - scanRange);
+    const end = Math.min(maxLength, position + scanRange);
+
+    scanner.style.left = `${(position / maxLength) * 100}%`;
+    scanZone.style.left = `${(start / maxLength) * 100}%`;
+    scanZone.style.width = `${((end - start) / maxLength) * 100}%`;
+  }
+
+  document.getElementById('run').addEventListener('click', async function() {
+    const length = parseInt(document.getElementById('length').value);
+    const coordsInput = document.getElementById('coordinates').value;
+    const defectCoords = coordsInput.split(',').map(Number).filter(n => !isNaN(n));
+
+    const output = document.getElementById('output');
+    output.innerHTML = '';
+
+    renderDefects(defectCoords, length);
+    updateScanner(0, length, 0);
+
+    let totalSteps = 0;
+    let currentPos = 0;
+    let suspiciousZones = [];
+
+    // Первый проход
+    output.innerHTML += '=== Первый проход (шаг 20) ===\n';
+
+    while (currentPos <= length) {
+      totalSteps++;
+      updateScanner(currentPos, length, 10);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const defectsInRange = defectCoords.filter(coord =>
+              coord >= Math.max(0, currentPos - 10) &&
+              coord <= Math.min(length, currentPos + 10)
+      );
+
+      const sortedDefects = defectsInRange.map(coord =>
+              Math.abs(coord - currentPos)
+      ).sort((a, b) => a - b);
+
+      let color = 'green';
+      if (sortedDefects.length > 0) {
+        if (sortedDefects[0] <= 5) color = 'red';
+        else if (sortedDefects[0] <= 10) color = 'yellow';
+
+        suspiciousZones.push({
+          start: Math.max(0, currentPos - 10),
+          end: Math.min(length, currentPos + 10),
+          defects: defectsInRange
+        });
+      }
+
+      output.innerHTML += `Позиция ${currentPos}: ${color} индикатор\n`;
+      currentPos += 20;
+    }
+
+    // Второй проход
+    output.innerHTML += '\n=== Детальная проверка ===\n';
+
+    // Объединение зон
+    suspiciousZones.sort((a, b) => a.start - b.start);
+    const mergedZones = [];
+    if (suspiciousZones.length > 0) {
+      let currentZone = {...suspiciousZones[0]};
+      for (let i = 1; i < suspiciousZones.length; i++) {
+        if (suspiciousZones[i].start <= currentZone.end) {
+          currentZone.end = Math.max(currentZone.end, suspiciousZones[i].end);
+          currentZone.defects = [...new Set([...currentZone.defects, ...suspiciousZones[i].defects])];
+        } else {
+          mergedZones.push(currentZone);
+          currentZone = {...suspiciousZones[i]};
+        }
+      }
+      mergedZones.push(currentZone);
+    }
+
+    // Проверка зон
+    const foundDefects = [];
+    for (const zone of mergedZones) {
+      output.innerHTML += `\nПроверка зоны [${zone.start}, ${zone.end}]:\n`;
+      for (let pos = zone.start; pos <= zone.end; pos++) {
+        totalSteps++;
+        updateScanner(pos, length, 0);
+        await new Promise(resolve => setTimeout(resolve, 50));
+        if (defectCoords.includes(pos)) {
+          foundDefects.push(pos);
+          output.innerHTML += `Найден дефект на ${pos} (шаг ${totalSteps})\n`;
+        }
+      }
+    }
+
+    // Итоговый результат
+    output.innerHTML += '\n=== Результаты ===\n';
+    output.innerHTML += `Обнаружено дефектов: ${foundDefects.length}\n`;
+    output.innerHTML += `Всего выполнено шагов: ${totalSteps}\n`;
+    if (foundDefects.length > 0) {
+      output.innerHTML += `Координаты дефектов: ${foundDefects.sort((a, b) => a - b).join(', ')}\n`;
+    }
+  });
+</script>
+</body>
+</html>

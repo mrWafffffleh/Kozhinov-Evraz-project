@@ -2,6 +2,7 @@ let lengthRail = document.getElementById("length")
 let defects = document.getElementById("defects")
 let def = []
 let borders = []
+
 function scanner(){
     if(lengthRail.value == ""){
         alert("Введите длину рельсы")
@@ -13,11 +14,35 @@ function scanner(){
     }
     def = defects.value.split(",").map(Number).filter(n => !isNaN(n))
     console.log(def)
+    let flag = true
+    def.forEach((item) => {
+        if(item > lengthRail.value){
+            flag = false
+        }
+    })
+    if(flag == false){
+        alert('Некорректные данные')
+        lengthRail.value = ''
+        defects.value = ''
+        return
+    }
+
+    let rail = document.getElementById('rail')
+    rail.classList.remove('invise')
+    rail.classList.add('rail-class')
+    rail.style.width = `${lengthRail.value * 20}px`
+    def.forEach(defs =>{
+        let defect = document.createElement('div')
+        defect.className = 'defect'
+        defect.style.left = `${defs * 20}px`
+        rail.appendChild(defect)
+    })
 
     let checkpoints = []
     let foundDefects = new Set()
     let LaserCord = 0
     let Steps = 0
+
     while(LaserCord <= lengthRail.value) {
         break
         if (def.includes(LaserCord)) {
