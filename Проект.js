@@ -3,12 +3,11 @@ let defects = document.getElementById("defects")
 let def = []
 let borders = []
 
-function scanner(){
-    if(lengthRail.value == ""){
+function scanner() {
+    if (lengthRail.value == "") {
         alert("Введите длину рельсы")
         return;
-    }
-    else if(defects.value == ""){
+    } else if (defects.value == "") {
         alert("Введите координаты дефектов")
         return;
     }
@@ -16,11 +15,11 @@ function scanner(){
     console.log(def)
     let flag = true
     def.forEach((item) => {
-        if(item > lengthRail.value){
+        if (item > lengthRail.value) {
             flag = false
         }
     })
-    if(flag == false){
+    if (flag == false) {
         alert('Некорректные данные')
         lengthRail.value = ''
         defects.value = ''
@@ -31,7 +30,7 @@ function scanner(){
     rail.classList.remove('invise')
     rail.classList.add('rail-class')
     rail.style.width = `${lengthRail.value * 20}px`
-    def.forEach(defs =>{
+    def.forEach(defs => {
         let defect = document.createElement('div')
         defect.className = 'defect'
         defect.style.left = `${defs * 20}px`
@@ -39,53 +38,92 @@ function scanner(){
     })
 
     let checkpoints = []
-    let foundDefects = new Set()
     let LaserCord = 0
     let Steps = 0
 
-    while(LaserCord <= lengthRail.value) {
-        break
-        if (def.includes(LaserCord)) {
-            foundDefects.add(LaserCord)
-            Steps++
+    LaserCord += 10
+    Steps+=1
+    let left = -Infinity
+    let right = Infinity
+    for(const coord of def){
+        if(coord < LaserCord && coord > left) {
+            left = coord
         }
-        let defInRange = def.filter(coord => coord >= Math.max(0, LaserCord - 10) && coord <= LaserCord + 10)
-        let sortDef = defInRange.map(coord => Math.abs(coord - LaserCord)).sort((a, b) => a - b)
-        let color = {
-            class: "green",
-            name: "Зеленый"
+        if(coord > LaserCord && coord < right){
+            right = coord
         }
-        if(sortDef.length > 0){
-            let closeDef = sortDef[0]
-            if(closeDef <= 5){
-                color.name = "Красный"
-                color.class = "red"
-                let zoneStart = Math.max(0, LaserCord - 10)
+    }
+    if(left !== -Infinity){
+        let distance = LaserCord - left
+        if(distance >= 1 && distance <= 5){
+            checkpoints.push(LaserCord + 3)
+        }
+        else if(distance > 5 && distance <= 10){
+            checkpoints.push(LaserCord + 7)
+        }
+    }
+    if(right !== Infinity){
+        let distance = right - LaserCord
+        if(distance >= 1 && distance <= 5){
+            checkpoints.push(LaserCord - 3)
+        }
+        else if(distance > 5 && distance <= 10){
+            checkpoints.push(LaserCord - 7)
+        }
+    }
+    while(LaserCord <= lengthRail){
+        LaserCord +=20
+        Steps +=1
+        let left = -Infinity
+        let right = Infinity
+        for(const coord of def){
+            if(coord < LaserCord && coord > left) {
+                left = coord
             }
-            else if(closeDef <= 10 && closeDef > 5){
-                color.class = "yellow"
-                color.name = "Желтый"
+            if(coord > LaserCord && coord < right){
+                right = coord
             }
+        }
+        if(left !== -Infinity){
+            let distance = LaserCord - left
+            if(distance >= 1 && distance <= 5){
+                checkpoints.push(LaserCord + 3)
+            }
+            else if(distance > 5 && distance <= 10){
+                checkpoints.push(LaserCord + 7)
+            }
+        }
+        if(right !== Infinity){
+            let distance = right - LaserCord
+            if(distance >= 1 && distance <= 5){
+                checkpoints.push(LaserCord - 3)
+            }
+            else if(distance > 5 && distance <= 10){
+                checkpoints.push(LaserCord - 7)
+            }
+        }
+    }
+}
+function check(checkpoints, LaserCord){
+    let foundDefects = new Set()
+    for(let i = 0; checkpoints.length; i++){
+        LaserCord = checkpoints[i]
+        let left = -Infinity
+        let right = Infinity
+        for(const coord of def){
+            if(coord < LaserCord && coord > left) {
+                left = coord
+            }
+            if(coord > LaserCord && coord < right){
+                right = coord
+            }
+        }
+        if(right - LaserCord>5 && right - LaserCord < 11){
+            LaserCord+=1
+        }
 
-        }
 
     }
 }
-function checkColor(LaserCord, isRight){
-    let minDistance = 11
-    for (const laserCordElement of def) {
-        let distance = laserCordElement - LaserCord
-        if(distance < minDistance){
-            minDistance = distance
-        }
-    }
-    if(Math.abs(minDistance) <= 5){
-        return "red"
-    }
-    else if(Math.abs(minDistance) <= 10 && Math.abs(minDistance) > 5){
-        return "yellow"
-    }
-    else{
-        return "green"
-    }
-}
+
+
