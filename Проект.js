@@ -111,15 +111,24 @@ function check(checkpoints, LaserCord){
         let left = -Infinity
         let right = Infinity
         for(const coord of def){
-            if(coord < LaserCord && coord > left) {
+            if(coord <= LaserCord && coord > left) {
                 left = coord
             }
-            if(coord > LaserCord && coord < right){
+            if(coord >= LaserCord && coord < right){
                 right = coord
             }
         }
+        if(left == LaserCord || right == LaserCord){
+            foundDefects.add(LaserCord)
+        }
         if(right - LaserCord>5 && right - LaserCord < 11){
             LaserCord+=1
+            Steps +=1
+            if(right == LaserCord){
+                foundDefects.add(LaserCord)
+            }
+
+
         }
 
 

@@ -66,10 +66,10 @@ button {
 .invise {
     display: none;
 }
-.scanner-class {
+.scan {
     position: absolute;
-    width: 400px;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.47);
-    transition: left 0.5s ease;
+    background-color: #f04d23;
+    width: 5px;
+    height: 140px;
 }
+
