@@ -15,7 +15,7 @@ body {
     padding: 20px;
     border-radius: 8px;
     border: 2px solid #f68b1e ;
-    box-shadow: 0 2px 4px rgba(246, 139, 30, 0.28);
+    box-shadow: 10px 10px 3px rgba(246, 139, 30, 0.28);
 }
 .inputs{
     margin-bottom: 15px;

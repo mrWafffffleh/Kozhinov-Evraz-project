@@ -41,6 +41,8 @@ function scanner() {
     let LaserCord = 0
     let Steps = 0
 
+
+
     LaserCord += 10
     Steps+=1
     let left = -Infinity
