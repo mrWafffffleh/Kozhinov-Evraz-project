@@ -1,9 +1,9 @@
-let lengthRail = document.getElementById("length")
+
 let defects = document.getElementById("defects")
 let def = []
-let borders = []
-
+let foundDefects = new Set()
 function scanner() {
+    let lengthRail = document.getElementById("length")
     if (lengthRail.value == "") {
         alert("Введите длину рельсы")
         return;
@@ -72,40 +72,67 @@ function scanner() {
         }
     }
     while(LaserCord <= lengthRail){
-        LaserCord +=20
-        Steps +=1
-        let left = -Infinity
-        let right = Infinity
-        for(const coord of def){
-            if(coord < LaserCord && coord > left) {
-                left = coord
+        console.log("l")
+        if(lengthRail - LaserCord >= 20){
+            LaserCord +=20
+            Steps +=1
+            let left = -Infinity
+            let right = Infinity
+            for(const coord of def){
+                if(coord < LaserCord && coord > left) {
+                    left = coord
+                }
+                if(coord > LaserCord && coord < right){
+                    right = coord
+                }
             }
-            if(coord > LaserCord && coord < right){
-                right = coord
+            if(left !== -Infinity){
+                let distance = LaserCord - left
+                if(distance >= 1 && distance <= 5){
+                    checkpoints.push(LaserCord + 3)
+                }
+                else if(distance > 5 && distance <= 10){
+                    checkpoints.push(LaserCord + 7)
+                }
+            }
+            if(right !== Infinity){
+                let distance = right - LaserCord
+                if(distance >= 1 && distance <= 5){
+                    checkpoints.push(LaserCord - 3)
+                }
+                else if(distance > 5 && distance <= 10){
+                    checkpoints.push(LaserCord - 7)
+                }
             }
         }
-        if(left !== -Infinity){
-            let distance = LaserCord - left
-            if(distance >= 1 && distance <= 5){
-                checkpoints.push(LaserCord + 3)
+        else{
+            LaserCord = lengthRail
+            Steps +=1
+            let left = -Infinity
+            let right = Infinity
+            for(const coord of def){
+                if(coord < LaserCord && coord > left) {
+                    left = coord
+                }
+                if(coord > LaserCord && coord < right){
+                    right = coord
+                }
             }
-            else if(distance > 5 && distance <= 10){
-                checkpoints.push(LaserCord + 7)
-            }
-        }
-        if(right !== Infinity){
-            let distance = right - LaserCord
-            if(distance >= 1 && distance <= 5){
-                checkpoints.push(LaserCord - 3)
-            }
-            else if(distance > 5 && distance <= 10){
-                checkpoints.push(LaserCord - 7)
+            if(left !== -Infinity){
+                let distance = LaserCord - left
+                if(distance >= 1 && distance <= 5){
+                    checkpoints.push(LaserCord + 3)
+                }
+                else if(distance > 5 && distance <= 10){
+                    checkpoints.push(LaserCord + 7)
+                }
             }
         }
     }
+    console.log(checkpoints)
+    check(checkpoints, LaserCord)
 }
 function check(checkpoints, LaserCord){
-    let foundDefects = new Set()
     for(let i = 0; checkpoints.length; i++){
         LaserCord = checkpoints[i]
         let left = -Infinity
@@ -120,19 +147,32 @@ function check(checkpoints, LaserCord){
         }
         if(left == LaserCord || right == LaserCord){
             foundDefects.add(LaserCord)
+            return
         }
-        if(right - LaserCord>5 && right - LaserCord < 11){
-            LaserCord+=1
-            Steps +=1
+        if(LaserCord - left >= 1 && LaserCord - left <= 2){
+            LaserCord = checkpoints[i] - 1
+            if(left == LaserCord){
+                foundDefects.add(LaserCord)
+                return;
+            }
+            else{
+                foundDefects.add(LaserCord - 1)
+                return;
+            }
+        }
+        if(right - LaserCord >= 1 && right - LaserCord <= 2){
+            LaserCord = checkpoints[i] +1
             if(right == LaserCord){
                 foundDefects.add(LaserCord)
+                return;
             }
-
-
+            else{
+                foundDefects.add(LaserCord + 1)
+                return;
+            }
         }
 
 
     }
+    console.log(foundDefects)
 }
-
-
