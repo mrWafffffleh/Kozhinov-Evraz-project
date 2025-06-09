@@ -279,47 +279,10 @@ function write(stp,Steps) {
         if (def.includes(currentPos)) {
             defectPos = currentPos;
             foundDefect = true;
-        }
-        else {
-            let leftDefect = null;
-            let rightDefect = null;
-            for (const coord of def) {
-                if (coord < currentPos && (leftDefect === null || coord > leftDefect)) {
-                    leftDefect = coord;
-                }
-                if (coord > currentPos && (rightDefect === null || coord < rightDefect)) {
-                    rightDefect = coord;
-                }
-            }
-            if (leftDefect !== null && (currentPos - leftDefect === 1 || currentPos - leftDefect === 2)) {
-                let otherDefects = def.filter(d =>
-                    d !== leftDefect &&
-                    d >= leftDefect - 10 &&
-                    d <= leftDefect + 10
-                );
-                if (otherDefects.length === 0) {
-                    defectPos = leftDefect;
-                    foundDefect = true;
-                    detectionMethod = `Дефект обнаружен на соседней координате ${leftDefect} см (единственный в зоне)`;
-                }
-            }
-            if (!foundDefect && rightDefect !== null && (rightDefect - currentPos === 1 || rightDefect - currentPos === 2)) {
-                let otherDefects = def.filter(d =>
-                    d !== rightDefect &&
-                    d >= rightDefect - 10 &&
-                    d <= rightDefect + 10
-                );
-                if (otherDefects.length === 0) {
-                    defectPos = rightDefect;
-                    foundDefect = true;
-                    detectionMethod = `Дефект обнаружен на соседней координате ${rightDefect} см (единственный в зоне)`;
-                }
-            }
-        }
-        if (foundDefect) {
             defectInfo.innerHTML = `<strong>Найден дефект на ${defectPos} см!</strong><br>${detectionMethod}`;
             defectInfo.style.color = 'red';
-        } else {
+        }
+        else {
             defectInfo.textContent = 'Дефекты не обнаружены';
         }
         li.appendChild(defectInfo);
