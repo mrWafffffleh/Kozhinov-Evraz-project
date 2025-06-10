@@ -116,7 +116,6 @@ function scanner() {
         else{
             LaserCord = +lengthRail.value
             stp.add(LaserCord)
-            // Steps +=1
             let left = -Infinity
             let right = Infinity
             for(const coord of def){
@@ -136,7 +135,6 @@ function scanner() {
                 if(distance >= 1 && distance <= 5){
                     checkpoints.push(LaserCord - 3)
                 }
-
             }
         }
     }
@@ -144,9 +142,9 @@ function scanner() {
     check(checkpoints, LaserCord, Steps)
 }
 function check(checkpoints, LaserCord, Steps){
+    let remainingDefects = new Set()
     for(let i = 0; i < checkpoints.length; i++){
         LaserCord = checkpoints[i]
-        // Steps +=1
         stp.add(LaserCord)
         let left = -Infinity
         let right = Infinity
@@ -177,7 +175,6 @@ function check(checkpoints, LaserCord, Steps){
             console.log('left', left)
             if(LaserCord - left <= 2){
                 LaserCord -= 1
-                // Steps +=1
                 stp.add(LaserCord)
                 if(left == LaserCord) {
                     foundDefects.add(LaserCord)
@@ -191,6 +188,7 @@ function check(checkpoints, LaserCord, Steps){
                     if(LaserCord - left == 1){
                         foundDefects.add(LaserCord - 1)
                         console.log(5, LaserCord - 1)
+                        remainingDefects.add((LaserCord - 1))
                     }
                 }
                 else{
@@ -215,6 +213,7 @@ function check(checkpoints, LaserCord, Steps){
                     if(right - LaserCord == 1){
                         foundDefects.add(LaserCord+1)
                         console.log(6, LaserCord +1)
+                        remainingDefects.add(LaserCord + 1)
                     }
                 }
                 else{
@@ -227,7 +226,6 @@ function check(checkpoints, LaserCord, Steps){
             console.log('right', right)
             console.log('left', left)
             LaserCord = checkpoints[i] - 1
-            // Steps +=1
             stp.add(LaserCord)
             if(left == LaserCord){
                 foundDefects.add(LaserCord)
@@ -236,14 +234,13 @@ function check(checkpoints, LaserCord, Steps){
             else{
                 foundDefects.add(LaserCord - 1)
                 console.log(8, LaserCord -1)
-
+                remainingDefects.add(LaserCord - 1)
             }
         }
         if(right - checkpoints[i] == 1 || right - checkpoints[i] == 2){
             console.log('right', right)
             console.log('left', left)
             LaserCord = checkpoints[i] +1
-            // Steps +=1
             stp.add(LaserCord)
             if(right == LaserCord){
                 foundDefects.add(LaserCord)
@@ -253,19 +250,21 @@ function check(checkpoints, LaserCord, Steps){
             else{
                 foundDefects.add(LaserCord + 1)
                 console.log(10, LaserCord+1)
-
+                remainingDefects.add(LaserCord + 1)
             }
         }
     }
     let foundDefectsArray = [ ...foundDefects ].sort((a, b) => a - b)
     console.log(foundDefectsArray)
-    console.log(Steps)
-    write(stp, Steps)
+    console.log(remainingDefects)
+    write(stp, remainingDefects)
+
 }
-function write(stp,Steps) {
+function write(stp, remainingDefects) {
     let list = document.getElementById('list');
     list.innerHTML = '';
     let sttp = Array.from(stp)
+    let remainingDef = Array.from(remainingDefects)
     for (let i = 0; i < sttp.length; i++) {
         let li = document.createElement('li');
         let currentPos = sttp[i];
@@ -276,14 +275,21 @@ function write(stp,Steps) {
         let foundDefect = false;
         let defectPos = null;
         let detectionMethod = '';
+        console.log('remainingDef', remainingDef)
+        remainingDef.forEach((item) => {
+            console.log('item', currentPos, item)
+            if (Math.abs(currentPos - item) === 1) {
+                detectionMethod = `Дефект найден на координате ${item} по остаточному методу`
+            }
+        })
         if (def.includes(currentPos)) {
             defectPos = currentPos;
             foundDefect = true;
-            defectInfo.innerHTML = `<strong>Найден дефект на ${defectPos} см!</strong><br>${detectionMethod}`;
+            defectInfo.innerHTML = `<strong>Найден дефект на ${defectPos}</strong><br>${detectionMethod}`;
             defectInfo.style.color = 'red';
         }
         else {
-            defectInfo.textContent = 'Дефекты не обнаружены';
+            defectInfo.innerHTML = `<strong>Дефекты не обнаружены</strong><br>${detectionMethod}`;
         }
         li.appendChild(defectInfo);
         let indicators = document.createElement('div');
