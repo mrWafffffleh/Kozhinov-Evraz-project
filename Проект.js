@@ -258,13 +258,13 @@ function check(checkpoints, LaserCord, Steps){
     console.log(foundDefectsArray)
     console.log(remainingDefects)
     write(stp, remainingDefects)
-
 }
 function write(stp, remainingDefects) {
     let list = document.getElementById('list');
     list.innerHTML = '';
     let sttp = Array.from(stp)
     let remainingDef = Array.from(remainingDefects)
+    let mass = []
     for (let i = 0; i < sttp.length; i++) {
         let li = document.createElement('li');
         let currentPos = sttp[i];
@@ -278,18 +278,22 @@ function write(stp, remainingDefects) {
         console.log('remainingDef', remainingDef)
         remainingDef.forEach((item) => {
             console.log('item', currentPos, item)
-            if (Math.abs(currentPos - item) === 1) {
-                detectionMethod = `Дефект найден на координате ${item} по остаточному методу`
+            if(currentPos !== 0){
+                if (Math.abs(currentPos - item) === 1) {
+                    if(mass.includes(item) === false)
+                        detectionMethod = `Дефект найден на координате ${item} по остаточному методу`
+                        mass.push(item)
+                }
             }
         })
         if (def.includes(currentPos)) {
             defectPos = currentPos;
             foundDefect = true;
-            defectInfo.innerHTML = `<strong>Найден дефект на ${defectPos}</strong><br>${detectionMethod}`;
+            defectInfo.innerHTML = `<strong>Найден дефект на ${defectPos}</strong><p style="color: red;">${detectionMethod}</p>`;
             defectInfo.style.color = 'red';
         }
         else {
-            defectInfo.innerHTML = `<strong>Дефекты не обнаружены</strong><br>${detectionMethod}`;
+            defectInfo.innerHTML = `<strong>Дефекты не обнаружены</strong><p style="color: red;">${detectionMethod}</p>`;
         }
         li.appendChild(defectInfo);
         let indicators = document.createElement('div');
@@ -307,6 +311,10 @@ function write(stp, remainingDefects) {
     stepsInfo.textContent = `Всего выполнено шагов: ${stp.size}`;
     stepsInfo.style.marginTop = '20px';
     stepsInfo.style.fontWeight = 'bold';
+    let defectsInform = document.createElement('div')
+    defectsInform.textContent = `Найдены дефекты на координатах ${foundDefects.toString()}`
+    defectsInform.style.marginTop = '20px'
+    defectsInform.style.fontWeight = 'bold';
     list.appendChild(stepsInfo);
 }
 function createDefectIndicator(position, direction) {
