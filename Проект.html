@@ -30,7 +30,6 @@
     </ul>
 </body>
 <script>
-
     let defects = document.getElementById("defects")
     let def = []
     let foundDefects = new Set()
@@ -43,10 +42,11 @@
         if (lengthRail.value == "") {
             alert("Введите длину рельсы")
             return;
-        } else if (defects.value == "") {
-            alert("Введите координаты дефектов")
-            return;
         }
+        // else if (defects.value == "") {
+        //     alert("Введите координаты дефектов")
+        //     return;
+        // }
         def = defects.value.split(",").map(Number).filter(n => !isNaN(n))
         console.log(def)
         let flag = true
@@ -88,7 +88,6 @@
         let checkpoints = []
         let LaserCord = 0
         let Steps = 0
-        stp.add(LaserCord)
         // Steps +=1
         let right = Infinity
         for(const coord of def){
@@ -262,6 +261,17 @@
                 if(left == LaserCord){
                     foundDefects.add(LaserCord)
                     console.log(7, LaserCord)
+                    let left = -Infinity
+                    for (const coord of def) {
+                        if (coord < LaserCord && coord > left) {
+                            left = coord
+                        }
+                    }
+                    if(LaserCord - left == 1){
+                        LaserCord -= 1
+                        foundDefects.add(LaserCord)
+                        stp.add(LaserCord)
+                    }
                 }
                 else{
                     foundDefects.add(LaserCord - 1)
@@ -277,7 +287,17 @@
                 if(right == LaserCord){
                     foundDefects.add(LaserCord)
                     console.log(9, LaserCord)
-
+                    let right = Infinity
+                    for(const coord of def){
+                        if(coord > LaserCord && coord < right){
+                            right = coord
+                        }
+                    }
+                    if(right - LaserCord == 1){
+                        LaserCord += 1
+                        foundDefects.add(LaserCord)
+                        stp.add(LaserCord)
+                    }
                 }
                 else{
                     foundDefects.add(LaserCord + 1)
@@ -345,9 +365,16 @@
         stepsInfo.style.marginTop = '20px';
         stepsInfo.style.fontWeight = 'bold';
         let defectsInform = document.createElement('div')
-        defectsInform.textContent = `Найдены дефекты на координатах ${ArrayfoundDef.toString()}`
-        defectsInform.style.marginTop = '20px'
-        defectsInform.style.fontWeight = 'bold';
+        if(foundDefects.size == 0){
+            defectsInform.textContent = 'Дефекты не найдены'
+            defectsInform.style.marginTop = '20px'
+            defectsInform.style.fontWeight = 'bold';
+        }
+        else {
+            defectsInform.textContent = `Найдены дефекты на координатах ${ArrayfoundDef.toString()}`
+            defectsInform.style.marginTop = '20px'
+            defectsInform.style.fontWeight = 'bold';
+        }
         list.appendChild(stepsInfo);
         list.appendChild(defectsInform);
     }
