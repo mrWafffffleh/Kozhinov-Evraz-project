@@ -317,6 +317,7 @@ function write(stp, remainingDefects) {
     defectsInform.style.marginTop = '20px'
     defectsInform.style.fontWeight = 'bold';
     list.appendChild(stepsInfo);
+    list.appendChild(defectsInform);
 }
 function createDefectIndicator(position, direction) {
     let indicator = document.createElement('div');
